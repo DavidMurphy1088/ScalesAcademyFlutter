@@ -32,6 +32,10 @@ Read this first in every session. Update the **Status** and **Test log** section
 11. **Git**: commit at the end of each stage (after it builds and runs for David); David pushes from his Terminal.
     `.sf2` SoundFonts are not committed (SA's Steinway_D.sf2 234 MB and FluidGM_Bank_0.sf2 148 MB exceed GitHub's 100 MB limit;
     also too large for web and probably for the Play Store - choosing smaller sounds is part of Stage 1).
+12. **Landscape only** on phones and tablets, as SA (29 Oct 2026).
+13. **Score** (29 Oct 2026): one-hand scales on one stave as SA; **hands-together scales on two staves** (RH treble, LH bass),
+    unlike SA, which hides the score for them. **Fingering on the keyboard only, not on the staves** (as SA). No staccato
+    marks (SA has none). Highlight: SA's green ring round the note while it sounds.
 
 ## Stages (riskiest first; each ends with something David can run)
 - **Stage 0 - Skeleton** (done 28 Oct 2026): project from FL, renamed; `lib/platform/` interfaces (pitch working; sound, MIDI,
@@ -51,8 +55,29 @@ Read this first in every session. Update the **Status** and **Test log** section
   - To check later: SoLoud and the microphone together on iOS (Stages 5-6) - both use the same audio session.
   - Licence question for David: SA's Steinway_D.sf2 is described in SA's code as "Logic Pro Steinway D". If it was taken from
     Logic Pro, check its licence allows distributing it (or recordings of it) inside an app - this applies to SA already.
-- **Stage 2 - Score via OSMD** (high risk): MusicXML for Grade 5 scales; web view on phones; live note highlighting at 120 bpm.
-  Fallback: colour SVG directly, or draw the staff in Dart.
+- **Stage 2 - Score via OSMD** (high risk; done 29 Oct 2026):
+  - **Changed from the plan:** the MusicXML is built by `assets/score/score.js` (JavaScript shared by all three platforms),
+    not in Dart: it can then be checked in a browser here against SA's screenshots. Dart has only the score description
+    (`lib/score/score_spec.dart`, sent as JSON). Layout: drawn once on one line to measure it, then zoomed to fill the
+    height, stretched across the width (or shrunk to the width if that runs out first); redrawn when its space changes size.
+  - Web: only one score on screen at a time (score.js keeps one score); OSMD loads with window.define hidden (UMD bundle).
+  - `lib/score/` (shared Dart): scale notes (MIDI, spelling step/alter/octave, length, hand) -> MusicXML with SA's rules
+    (see "SA score layout" below); one or two staves; every note numbered for highlighting.
+  - `assets/score/`: OSMD **2.2.1** pinned and bundled (BSD-3, 1.4 MB, works offline; fallback 1.9.9) + one HTML/JS bridge
+    shared by all platforms: load score, highlight note n on/off, clear; reports render time and errors.
+  - `lib/platform/score/`: one score widget; Android/iOS: `webview_flutter` page from assets (JS channel back to Dart);
+    web: OSMD drawn straight into the page (HtmlElementView + JS interop). Start the web view once and keep it.
+  - Highlight: JS draws SA's green ring as an SVG circle round the note head, toggled by note number - no re-render.
+    Fallback: OSMD's note colouring.
+  - Whole scale on one line, scaled to the width (as SA); lock the app to landscape (decision 12).
+  - Score test screen (home > Score): choose a test scale, render time shown; Play at tempo with the Stage 1 player (Yamaha)
+    and the ring following; highlight lateness (average/worst) like the Sound screen's timing line.
+  - Test scales (typed-in note lists until Stage 3): C major RH 2 oct; Ab major LH (flats, mid-bar clef changes);
+    F harmonic minor RH; F melodic minor RH and LH (naturals up, flats down); B dim 7th RH and LH; stress: F# major RH
+    (6 sharps, E#), G# harmonic minor (F double sharp); one hands-together scale on two staves (e.g. A major).
+  - Pass: matches SA's screenshots (`docs/sa_reference/`) on Samsung, iPhone, Chrome; render < ~0.5 s on Samsung;
+    ring in time at 120; readable in landscape. Fallback: colour SVG directly, or draw the staff in Dart.
+  - Estimate 2-3 sessions.
 - **Stage 3 - Scale model, Grade 5**: port SA `Scale.swift`; compare note lists with SA (a test in SA can print them).
 - **Stage 4 - Keyboard and inputs**: Dart keyboard; microphone, MIDI and on-screen touch feeding one note stream.
 - **Stage 5 - Follow and Lead**: port SA `ExerciseHandler`; compare with SA on iPhone at the piano; Samsung; MIDI; touch.
@@ -73,8 +98,39 @@ Read this first in every session. Update the **Status** and **Test log** section
 - Follow and Lead are one-hand only (also with MIDI).
 - Grade 5 ABRSM tempos: scales 120, arpeggios/broken chords 88.
 
+## SA score layout (SA code + David's screenshots in docs/sa_reference/, 29 Oct 2026)
+- One line for the whole scale, below the keyboard; no scrolling. SA hides the score for hands-together scales and
+  chromatic scales over 1 octave (SAF shows two staves for hands together - decision 13).
+- Clef, key signature and **4/4 time signature shown** (3/8 for broken chords); bar lines shown; final barline light-heavy.
+- Scale notes are quavers beamed in groups of 4 (half bars); last bar: the final note as a crotchet, then rests to fill it
+  (dim 7th: crotchet, crotchet rest, minim rest; 2-octave scales: 4 quavers, crotchet, crotchet rest).
+- Accidentals per bar (bar lines count); e.g. F melodic minor: naturals on D and E going up, flats again in the same bar
+  coming down (Eb after E natural). Dim 7th: no key signature, flat on every Ab.
+- LH clef changes **at the start of a group of 4 quavers, also mid-bar** (Ab major LH: treble clef half way through bar 2,
+  bass clef back half way through bar 3), when a group would need too many ledger lines (offset > 8 above in bass,
+  < -7 below in treble; `ScalesModel.createScore`); can be turned off per scale (`clefSwitch: false`).
+  SA draws mid-bar clefs full size; OSMD draws them smaller (normal engraving).
+- Highlight: green ring (FigmaColors green) round the sounding note (Hear; Follow/Lead correct notes).
+
+## SA functionality to carry over (survey of SA code, 29 Oct 2026; not complete)
+- Start: Welcome; user set-up (name, board ABRSM, grade); several users ("Who wants to play?"); tabs Activities, Users,
+  Subscriptions, Settings (+ Log tab in logging mode: a student named "debug").
+- Activities: Choose Your Exercise (filter by type and key), Practice Chart (days of the week, Shuffle, harmonic/melodic
+  choice), Spin the Wheel (random exercise, "exam conditions").
+- Hands-together scale: Select Hands screen - Hands Together, Practise Left Hand, Practise Right Hand.
+- Scale screen: title, help (?), grade and board; metronome bar with tempo slider and up/down arrows; keyboard(s) with
+  fingering numbers (orange = finger after a thumb crossing/position change) and a hand icon at the start key; score;
+  buttons Follow, Lead (one hand only), Play Along, Backing Track (scales with backing chords; SoundFont presets),
+  Record (count-in at 90 shown on screen, silent metronome) and Hear Recording.
+- Results: stars/badges per note during an exercise (animal badges), "Good job" message.
+- Settings: keyboard colour, Listen with (microphone or USB/Bluetooth MIDI keyboard, Check), consecutive count gate,
+  minimum volume, Allow Harmonics, debug mode, email feedback; piano calibration screen; subscriptions/licence; help texts.
+
 ## Status
 - Stage 0: DONE 28 Oct 2026 - runs as "SA Flutter" on Samsung, iPhone and Chrome; committed.
+- Stage 2: DONE 29 Oct 2026 - Score test screen (home > Score) OK on Chrome, Samsung and iPhone; landscape lock works; committed.
+  To do later (Stage 7, real screens): start the score web view when the app starts and keep it, so the first score on
+  Android/iOS doesn't wait ~1.2-1.8 s for the web view and OSMD to load.
 - Stage 1: DONE 29 Oct 2026 - sound and metronome OK on Samsung, Chrome and iPhone (release build); Yamaha default piano;
   new app icon; committed.
 
@@ -112,3 +168,12 @@ Read this first in every session. Update the **Status** and **Test log** section
   David prefers the Yamaha: made the default.
 - 29 Oct 2026, iPhone release build (`flutter run --release`): fine (David) - the slow load, early crackles and first-run
   lateness were debug-build effects. Test iPhone sound/timing in release builds.
+- 29 Oct 2026, SAF Stage 2 Score screen (David; Chrome and Samsung debug, iPhone debug). Scores look like SA's (Ab major LH,
+  F melodic minor RH, dim 7th RH); ring in time at 120 and 88; stays in landscape; nothing odd on first open.
+  Chrome: drawn in 38 ms (C major), 13 ms (Ab major LH); ticks avg 0.6-1.0 ms late, worst 1.8 ms; highlight round trip
+  avg 0.3-0.6 ms, worst 1.9 ms.
+  Samsung: first draw 199 ms (OSMD) but 1174 ms from opening the screen (web view start + loading OSMD), then drawn again
+  in 64 ms (the web view's size settled - redraw on resize); ticks avg 1.6-1.7 ms, worst 3.5 ms; round trip avg 13-15 ms,
+  worst 32 ms (about one screen frame).
+  iPhone (debug): drawn in 81 ms, 1804 ms from opening the screen; ticks avg 1.9 ms, worst 3.1 ms; round trip avg 4.6 ms,
+  worst 16 ms.

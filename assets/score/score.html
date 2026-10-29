@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!-- SA Flutter score page, used inside the web view on Android and iOS (lib/platform/score/score_view_mobile.dart).
+       The web app doesn't use this page: it loads osmd.min.js and score.js into its own page. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #FFFFFF; overflow: hidden; }
+    #score { width: 100%; height: 100%; }
+  </style>
+  <script src="osmd.min.js"></script>
+  <script src="score.js"></script>
+</head>
+<body>
+  <div id="score"></div>
+  <script>
+    // SAF is the JavaScript channel added by the Dart side (webview_flutter addJavaScriptChannel)
+    SAFScore.init(document.getElementById('score'), function (message) {
+      if (window.SAF && window.SAF.postMessage) {
+        window.SAF.postMessage(message);
+      } else {
+        console.log('SAFScore', message);
+      }
+    });
+  </script>
+</body>
+</html>

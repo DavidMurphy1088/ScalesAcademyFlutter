@@ -36,6 +36,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   # Sound: piano notes and metronome on Android, iOS and web (one Dart API). Pinned: 5.2.2 is very new
   flutter_soloud: 5.2.1
+  # Score (Stage 2): OSMD runs in a web view on Android and iOS (not used on the web)
+  webview_flutter: ^4.13.0
+  # Score on the web: OSMD drawn straight into the page (package:web for the <div> and <script> elements)
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_test:
@@ -69,6 +73,9 @@ flutter:
     - assets/sounds/piano_yamaha/
     # Scales Academy's metronome clicks (converted from AIFF)
     - assets/sounds/metronome/
+    # Score (Stage 2): OpenSheetMusicDisplay 2.2.1 (BSD-3, licence in OSMD_LICENSE.txt), the shared score page
+    # (score.html, score.js) and the Stage 2 test scales
+    - assets/score/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

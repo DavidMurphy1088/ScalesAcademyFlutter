@@ -8,10 +8,14 @@ Scales Academy for iOS, Android and the web, in Flutter. Dart project name: `sca
   - `sound/` - piano notes and metronome (flutter_soloud; iOS audio session via Swift)
   - `midi/` - MIDI keyboard input (Stage 4)
   - `recording/` - recording and playback (Stage 6)
+  - `score/` - the score view: OSMD in a web view on Android/iOS (`webview_flutter`), straight into the page on the web
+- `lib/score/` - the score description (key, staves, notes with their spelling) sent to the score page
 - `lib/music/` - notes and names
 - `lib/exercise/` - Scales Academy's note rules and scoring
 - `lib/playback/` - tempo clock and scale player (shared timing engine)
-- `lib/screens/` - screens (home menu, Listen, Sound)
+- `lib/screens/` - screens (home menu, Listen, Sound, Score)
+- `assets/score/` - the score page shared by all platforms: `score.js` (MusicXML with SA's layout rules, drawing,
+  SA's green ring), `score.html` (web view page), OpenSheetMusicDisplay 2.2.1 (`osmd.min.js`, BSD-3), test scales
 - `assets/sounds/` - piano notes rendered from SA's SoundFonts (`tools/render_piano.py`) and SA's metronome clicks
 
 ## SoundFonts
