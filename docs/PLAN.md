@@ -6,7 +6,7 @@ Read this first in every session. Update the **Status** and **Test log** section
 - **SA** = Scales Academy, the live Swift iOS app: `/Users/davidmurphy/Projects/ScalesAcademy` (GitHub `DavidMurphy1088/ScalesTrainer`)
 - **FL** = FlutterTest / "Scales Academy Test", the pitch-detection trial: `/Volumes/DynabookSSD/Projects/FlutterTest`
   **FL is frozen (28 Oct 2026): don't change it; read it only if needed. All work and testing is in SAF.**
-- **SAF** = this project, "SA Flutter": `/Volumes/DynabookSSD/Projects/ScalesAcademyFlutter`, Dart name `scales_academy_flutter`,
+- **SAFlutter** (also "SAF") = this project, app name "SA Flutter": `/Volumes/DynabookSSD/Projects/ScalesAcademyFlutter`, Dart name `scales_academy_flutter`,
   GitHub `DavidMurphy1088/ScalesAcademyFlutter`, branch `main`
 - App IDs: Android `nz.co.musicmastereducation.scales_academy_flutter`, iOS `nz.co.musicmastereducation.scalesAcademyFlutter`
 - Run: `./run.sh` in the project folder (1 Android, 2 Web, 3 iOS).
@@ -36,8 +36,21 @@ Read this first in every session. Update the **Status** and **Test log** section
 ## Stages (riskiest first; each ends with something David can run)
 - **Stage 0 - Skeleton** (done 28 Oct 2026): project from FL, renamed; `lib/platform/` interfaces (pitch working; sound, MIDI,
   recording placeholders); git. Test: builds on Samsung, iPhone, Chrome; listening works as in FL.
-- **Stage 1 - Sound and metronome** (high risk): SoundFonts via flutter_midi_pro (Android/iOS), JS player on web; SA metronome;
-  Grade 5 scale at exam tempo (scales 120, arpeggios 88). Choose smaller piano sounds for Android/web.
+- **Stage 1 - Sound and metronome** (high risk; done 29 Oct 2026):
+  - **Changed from the outline:** one sound engine for all three platforms, **flutter_soloud 5.2.1** (pinned), instead of
+    flutter_midi_pro (no web) plus a separate JavaScript SoundFont player. No platform code except iOS's audio session.
+  - Piano notes are **pre-rendered from SA's SoundFonts** (tools/render_piano.py): one 2.5 s mono Ogg file per MIDI note 21-108,
+    velocity 64 as SA plays. SA's Steinway_D.sf2 (234 MB) becomes 1.5 MB, so SA's own piano sound works on Android and web.
+    Yamaha Grand Lite (+12 dB) is the default piano (David, 29 Oct 2026); SA's Steinway is the second choice. Released notes fade out over 150 ms. Pitch checked within a few cents.
+  - SA's metronome: low click every beat (SA uses only the low click), count-in 4 beats; clicks converted from AIFF to WAV.
+  - SA's playback rule: tempo = crotchet beats/min; scale notes are quavers (2 per beat; triplets 3 for broken chords);
+    legato (each note until the next); notes per click from the time signature (compound time 3).
+  - Timing: `lib/playback/tempo_clock.dart` times every tick from the start (no drift), as SA's Metronome; reports lateness.
+  - iOS: SoLoud leaves the audio session to the app, so the Dart player calls Swift `configureSession` (SA's playAndRecord
+    session, 48 kHz) first; without it the silent switch mutes the app. Engine runs at 48 kHz on iOS, 44.1 kHz elsewhere.
+  - To check later: SoLoud and the microphone together on iOS (Stages 5-6) - both use the same audio session.
+  - Licence question for David: SA's Steinway_D.sf2 is described in SA's code as "Logic Pro Steinway D". If it was taken from
+    Logic Pro, check its licence allows distributing it (or recordings of it) inside an app - this applies to SA already.
 - **Stage 2 - Score via OSMD** (high risk): MusicXML for Grade 5 scales; web view on phones; live note highlighting at 120 bpm.
   Fallback: colour SVG directly, or draw the staff in Dart.
 - **Stage 3 - Scale model, Grade 5**: port SA `Scale.swift`; compare note lists with SA (a test in SA can print them).
@@ -62,7 +75,8 @@ Read this first in every session. Update the **Status** and **Test log** section
 
 ## Status
 - Stage 0: DONE 28 Oct 2026 - runs as "SA Flutter" on Samsung, iPhone and Chrome; committed.
-- Next: Stage 1 (sound and metronome).
+- Stage 1: DONE 29 Oct 2026 - sound and metronome OK on Samsung, Chrome and iPhone (release build); Yamaha default piano;
+  new app icon; committed.
 
 ## Test log
 - 28 Oct 2026, FL on Samsung (YIN), 2-octave C major, loudness filter 0.0: scale heard accurately.
@@ -88,3 +102,13 @@ Read this first in every session. Update the **Status** and **Test log** section
   notes; one octave slip (B5, ignored). Correct notes peaked 0.004-0.019, about 10x lower than AudioKit on the same iPhone
   (0.082-0.179): the two measure loudness differently (YIN: plain RMS of the block). David: YIN needs a lower loudness filter
   than AudioKit on all platforms. Quietest correct note (C5) only 0.004, so the 0.004 filter was right at the edge.
+- 29 Oct 2026, SAF Stage 1 Sound screen, debug builds (`flutter run`), David:
+  Load time: Chrome ~600 ms, Samsung ~1260 ms, iPhone ~4400 ms; switching Yamaha/Steinway works.
+  Single notes: Chrome and Samsung clean; iPhone intermittent crackles at first, fine after a few plays.
+  C major 2 octaves at 120 and 88, metronome + count-in: Chrome and Samsung even, legato, in time.
+  Samsung: 35 ticks, average 3.7 ms late, worst 29.1 ms. iPhone: 24 ticks, average 4.7 ms, worst 71.3 ms on the first run,
+  better on later runs (warm-up). Metronome only ~30 s: steady on Chrome and Samsung. Volume sliders fine.
+  Chrome: sound starts only after Start sound, no delay or glitch. Not yet tested: iPhone silent switch, headphones (none).
+  David prefers the Yamaha: made the default.
+- 29 Oct 2026, iPhone release build (`flutter run --release`): fine (David) - the slow load, early crackles and first-run
+  lateness were debug-build effects. Test iPhone sound/timing in release builds.

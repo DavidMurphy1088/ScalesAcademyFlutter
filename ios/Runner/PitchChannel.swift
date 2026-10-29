@@ -39,6 +39,15 @@ final class PitchChannel: NSObject, FlutterStreamHandler {
             case "stop":
                 self.stop()
                 result(nil)
+            case "configureSession":
+                // Called by the Dart sound player before playing: SoLoud leaves the audio session to the app.
+                // Without this, iOS uses its default session and the silent switch mutes the app's sound.
+                do {
+                    try PitchChannel.configureAudioSession()
+                    result(true)
+                } catch {
+                    result(FlutterError(code: "session", message: error.localizedDescription, details: nil))
+                }
             default:
                 result(FlutterMethodNotImplemented)
             }

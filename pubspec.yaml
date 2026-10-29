@@ -34,6 +34,8 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  # Sound: piano notes and metronome on Android, iOS and web (one Dart API). Pinned: 5.2.2 is very new
+  flutter_soloud: 5.2.1
 
 dev_dependencies:
   flutter_test:
@@ -62,6 +64,11 @@ flutter:
   # App icon shown at the top left of the screen (copied from Scales Academy's app_icon 1.png)
   assets:
     - assets/images/app_icon.png
+    # Piano notes rendered from Scales Academy's SoundFonts (tools/render_piano.py), one file per MIDI note 21-108
+    - assets/sounds/piano_steinway/
+    - assets/sounds/piano_yamaha/
+    # Scales Academy's metronome clicks (converted from AIFF)
+    - assets/sounds/metronome/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -94,19 +101,21 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
-# Home-screen app icon: Scales Academy's own app icon (SA AppIcon.appiconset/app_icon.png, 1024x1024).
+# App icon (David, 29 Oct 2026): yellow/piano-keys circle on black, 1024x1024, corners filled black (no transparency).
+# The same image is assets/images/app_icon.png, shown at the top left of every screen (saAppBar).
 # After changing it, run:  dart run flutter_launcher_icons
 flutter_launcher_icons:
   image_path: "assets/icon/launcher_icon.png"
   android: true
   ios: true
   remove_alpha_ios: true
-  # Android 8+ shapes icons (Samsung: rounded square). The whole icon is shown inset on white so nothing is cropped
-  adaptive_icon_background: "#FFFFFF"
+  # Android 8+ shapes icons (Samsung: rounded square) and shows only the middle ~67%. Black background matches the
+  # icon's black, and the inset keeps the whole circle inside that visible area
+  adaptive_icon_background: "#000000"
   adaptive_icon_foreground: "assets/icon/launcher_icon.png"
-  adaptive_icon_foreground_inset: 16
+  adaptive_icon_foreground_inset: 10
   web:
     generate: true
     image_path: "assets/icon/launcher_icon.png"
-    background_color: "#FFFFFF"
-    theme_color: "#FFFFFF"
+    background_color: "#000000"
+    theme_color: "#000000"

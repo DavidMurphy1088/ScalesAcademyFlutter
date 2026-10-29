@@ -8,6 +8,7 @@ import '../exercise/note_detector.dart';
 import '../platform/pitch/pitch_reading.dart';
 import '../platform/pitch/pitch_source.dart';
 import '../platform/platform_services.dart';
+import 'common.dart';
 import '../exercise/scale_scorer.dart';
 
 /// Listens to the microphone and shows the notes detected, using Scales Academy's rules.
@@ -332,7 +333,7 @@ class _ListenPageState extends State<ListenPage> {
   Widget build(BuildContext context) {
     if (_source == null) {
       return Scaffold(
-        appBar: _appBar(context, 'SA Flutter'),
+        appBar: saAppBar(context, 'SA Flutter'),
         body: const Center(
           child: Padding(
             padding: EdgeInsets.all(24),
@@ -352,7 +353,7 @@ class _ListenPageState extends State<ListenPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: _appBar(context, 'SA Flutter – Listen'),
+      appBar: saAppBar(context, 'SA Flutter – Listen'),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -593,48 +594,6 @@ class _ListenPageState extends State<ListenPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Title bar with the app icon at the top left. The icon (and the bar) grow on wider screens:
-/// phones ~40, small tablets / narrow windows ~56, iPads and wide windows ~72, very wide ~88.
-PreferredSizeWidget _appBar(BuildContext context, String title) {
-  final width = MediaQuery.sizeOf(context).width;
-  final double iconSize;
-  if (width < 600) {
-    iconSize = 40;
-  } else if (width < 900) {
-    iconSize = 56;
-  } else if (width < 1300) {
-    iconSize = 72;
-  } else {
-    iconSize = 88;
-  }
-  const padding = 8.0;
-  return AppBar(
-    toolbarHeight: iconSize + padding * 2,
-    leadingWidth: iconSize + padding * 2,
-    leading: _AppIcon(size: iconSize, padding: padding),
-    title: Text(title),
-  );
-}
-
-/// The app icon at the top left of the screen
-class _AppIcon extends StatelessWidget {
-  final double size;
-  final double padding;
-
-  const _AppIcon({required this.size, required this.padding});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(padding),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(size * 0.18),
-        child: Image.asset('assets/images/app_icon.png', width: size, height: size, fit: BoxFit.contain),
       ),
     );
   }

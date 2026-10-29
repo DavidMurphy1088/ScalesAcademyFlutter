@@ -1,6 +1,7 @@
 import 'midi/midi_input.dart';
 import 'pitch/pitch_source.dart';
 import 'recording/audio_recorder.dart';
+import 'sound/soloud_sound_player.dart';
 import 'sound/sound_player.dart';
 
 /// The only place the app reaches platform-specific code. Everything else in the app uses these
@@ -8,7 +9,7 @@ import 'sound/sound_player.dart';
 ///
 ///  - [pitch]: microphone pitch readings (Android: Kotlin YIN; iOS: AudioKit as in Scales Academy,
 ///    or YIN; web: JavaScript YIN)
-///  - [sound]: piano notes and metronome (placeholder until Stage 1)
+///  - [sound]: piano notes and metronome (flutter_soloud on all three platforms; iOS audio session in Swift)
 ///  - [midi]: MIDI keyboard input (placeholder until Stage 4)
 ///  - [recorder]: recording and playback (placeholder until Stage 6)
 class PlatformServices {
@@ -22,7 +23,7 @@ class PlatformServices {
   /// The services for the platform the app is running on
   static final PlatformServices instance = PlatformServices._(
     pitch: PitchSource.forThisPlatform(),
-    sound: SilentSoundPlayer(),
+    sound: SoloudSoundPlayer(),
     midi: NoMidiInput(),
     recorder: NoAudioRecorder(),
   );
