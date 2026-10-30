@@ -78,7 +78,24 @@ Read this first in every session. Update the **Status** and **Test log** section
   - Pass: matches SA's screenshots (`docs/sa_reference/`) on Samsung, iPhone, Chrome; render < ~0.5 s on Samsung;
     ring in time at 120; readable in landscape. Fallback: colour SVG directly, or draw the staff in Dart.
   - Estimate 2-3 sessions.
-- **Stage 3 - Scale model, Grade 5**: port SA `Scale.swift`; compare note lists with SA (a test in SA can print them).
+- **Stage 3 - Scale model, Grade 5** (done 30 Oct 2026; Samsung/iPhone run still due):
+  - `lib/music/scale.dart`: SA's `Scale.swift` ported for **all** SA scale types (decision: port all, list and check Grade 5),
+    kept as close to SA as possible including its quirks (e.g. the melodic-minor counter carries over between hands;
+    getHighPointIndex reads the right hand). Notes, values, start notes, contrary motion, segments, **fingering** and
+    finger-break colours (decision: fingering now; shown on the keyboard in Stage 4). Plain Dart.
+  - `lib/music/abrsm_grade5.dart`: SA's 38 ABRSM Grade 5 exercises in SA's order; hands-together ones also practised
+    with one hand (`Scale.withHands`, SA's Select Hands).
+  - `lib/music/scale_spelling.dart`: SA's key signatures; spelling the musical way (a letter per scale step, chord-note
+    letters for arpeggios); chromatic as SA (C-column spellings, the first accidental drawn decides sharps or flats for the
+    whole score - so SA's F#/A# chromatic is written in flats).
+  - SA reference: new SA test `ScalesAcademyTests/ExportForSAFTests.swift` (agreed; not app code) writes
+    `test/sa_reference/abrsm_grade5.json` (run on an iOS Simulator). `dart run tools/check_scales.dart` compares note by note.
+  - Score screen: SA's Grade 5 list with Together / LH / RH; the chromatic is shown on two staves (decision: try it).
+  - score.js: a left-hand clef change at the very start (a high left hand, e.g. the chromatic) is the stave's first clef;
+    tighter note spacing (OSMD VoiceSpacing 0.5 / 1.5, default 0.85 / 3) so the line fits across at a larger size (a line
+    that doesn't fit is wrapped by OSMD, so the spacing decides the size).
+  - Known SA difference kept: after a mid-bar clef change SA doesn't repeat an accidental cancelled earlier in the bar
+    (chromatic LH: D after Db, SA draws no natural); SAF/OSMD draws the natural (correct notation) - David, 30 Oct 2026: keep SAF's natural.
 - **Stage 4 - Keyboard and inputs**: Dart keyboard; microphone, MIDI and on-screen touch feeding one note stream.
 - **Stage 5 - Follow and Lead**: port SA `ExerciseHandler`; compare with SA on iPhone at the piano; Samsung; MIDI; touch.
 - **Stage 6 - Recording, playback, Play Along** (high risk, lower priority). Apply SA `Notes/AudioSession_iPadPlaybackScratch.md`.
@@ -128,6 +145,9 @@ Read this first in every session. Update the **Status** and **Test log** section
 
 ## Status
 - Stage 0: DONE 28 Oct 2026 - runs as "SA Flutter" on Samsung, iPhone and Chrome; committed.
+- Stage 3: DONE 30 Oct 2026, committed (web run by David; Samsung and iPhone run still due). Checked against SA's export (98 exercises: 38 + RH/LH of 30 hands-together):
+  `tools/check_scales.dart` all 98 match (4604 notes: MIDI, value, finger, finger breaks, segments; 3000 spellings; key
+  signatures); OSMD's drawn accidentals match SA's in 97 - the chromatic's one natural above (kept, David).
 - Stage 2: DONE 29 Oct 2026 - Score test screen (home > Score) OK on Chrome, Samsung and iPhone; landscape lock works; committed.
   To do later (Stage 7, real screens): start the score web view when the app starts and keep it, so the first score on
   Android/iOS doesn't wait ~1.2-1.8 s for the web view and OSMD to load.
@@ -177,3 +197,9 @@ Read this first in every session. Update the **Status** and **Test log** section
   worst 32 ms (about one screen frame).
   iPhone (debug): drawn in 81 ms, 1804 ms from opening the screen; ticks avg 1.9 ms, worst 3.1 ms; round trip avg 4.6 ms,
   worst 16 ms.
+
+- 30 Oct 2026, Stage 3 checks (Claude): SA test "Export for SAF" run by David on the iPhone 13 Simulator (it could not write
+  to the DynabookSSD - macOS permission - so David copied it from the Simulator's tmp folder). check_scales: 98/98 match
+  first time; a deliberately broken fingering was caught (4 exercises). Accidentals drawn by OSMD vs SA: 97/98 match.
+  All 98 scores draw in Chromium, avg 17 ms.
+- 30 Oct 2026, David: `flutter test` - 22 tests passed (3 s). Score screen run on the web (debug): Grade 5 list, Together/LH/RH, A major hands together drawn in 52 ms.

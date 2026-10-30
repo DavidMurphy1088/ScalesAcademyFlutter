@@ -1,7 +1,3 @@
-import 'dart:convert';
-
-import 'package:flutter/services.dart';
-
 /// Which hand a stave is for
 enum Hand { right, left }
 
@@ -27,7 +23,7 @@ class ScoreStave {
       };
 }
 
-/// A scale's score, drawn by assets/score/score.js with SA's layout rules (ScalesModel.createScore):
+/// A scale's score (made from SA's scale model by lib/score/scale_score.dart), drawn by assets/score/score.js with SA's layout rules (ScalesModel.createScore):
 /// key signature, 4/4, bar lines, quavers beamed in fours, rests to fill the last bar, and the left hand's
 /// clef changes. One stave for one hand; two (right hand first) for hands together.
 class ScoreSpec {
@@ -90,13 +86,6 @@ class ScoreSpec {
           ),
       ],
     );
-  }
-
-  /// The Stage 2 test scales (assets/score/test_scales.json), typed in until Stage 3 provides SA's scale model
-  static Future<List<ScoreSpec>> loadTestScales() async {
-    final text = await rootBundle.loadString('assets/score/test_scales.json');
-    final json = jsonDecode(text) as Map<String, dynamic>;
-    return [for (final s in json['scales'] as List) ScoreSpec.fromJson(s as Map<String, dynamic>)];
   }
 }
 

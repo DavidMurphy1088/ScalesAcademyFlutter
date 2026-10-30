@@ -138,6 +138,11 @@
     const twoStaves = hands.length === 2;
     const leftStaff = hands.indexOf('left') + 1; // 0 if no left hand
     const clefChanges = leftStaff ? leftHandClefChanges(slices, spec.clefSwitch !== false) : [];
+    // A change at the very start (e.g. a left hand starting high, as the chromatic's) is the stave's first clef
+    let leftFirstClef = 'bass';
+    if (clefChanges.length > 0 && clefChanges[0].start < 1e-6) {
+      leftFirstClef = clefChanges.shift().clef;
+    }
     const [top, bottom] = spec.time || [4, 4];
     const bars = Math.ceil(total / barValue - 1e-6);
 
@@ -154,7 +159,7 @@
           `<key><fifths>${spec.key.fifths}</fifths><mode>${spec.key.mode || 'major'}</mode></key>` +
           `<time><beats>${top}</beats><beat-type>${bottom}</beat-type></time>` +
           (twoStaves ? '<staves>2</staves>' : '') +
-          hands.map((h, k) => clefXml(h === 'right' ? 'treble' : 'bass', k + 1)).join('') +
+          hands.map((h, k) => clefXml(h === 'right' ? 'treble' : leftFirstClef, k + 1)).join('') +
           '</attributes>';
       }
       hands.forEach((hand, k) => {
@@ -293,6 +298,10 @@
   function setRules(singleLine, bars) {
     const rules = osmd.EngravingRules;
     rules.RenderSingleHorizontalStaffline = singleLine;
+    // Tighter than OSMD's default note spacing (0.85, 3), closer to SA's: the whole scale fits across at a larger size.
+    // (A line that doesn't fit across is wrapped by OSMD, so the spacing - not the zoom - decides the size.)
+    rules.VoiceSpacingMultiplierVexflow = 0.5;
+    rules.VoiceSpacingAddendVexflow = 1.5;
     rules.RenderXMeasuresPerLineAkaSystem = singleLine ? 0 : bars;
     rules.StretchLastSystemLine = !singleLine;
     rules.PageTopMargin = 0.5;
@@ -330,6 +339,19 @@
       osmd.Zoom = zW;
     }
     osmd.render();
+    // The single line was drawn with more space above and below than the stretched line, so zH comes out too small:
+    // measure the stretched line's height and zoom up to fill the height - but never past zW, beyond which the notes
+    // would need more room across than their natural spacing
+    if (zH <= zW) {
+      for (let i = 0; i < 3; i++) {
+        const drawn = drawnSize();
+        if (!(drawn.h > 0)) break;
+        const next = Math.min(zW, osmd.Zoom * (height / drawn.h));
+        if (Math.abs(next - osmd.Zoom) < 0.01) break;
+        osmd.Zoom = next;
+        osmd.render();
+      }
+    }
   }
 
   /** Scale the drawn SVG to fill the container's width (or height, if that runs out first), left aligned */
@@ -409,5 +431,23 @@
     }
   }
 
-  window.SAFScore = { init, load, highlight, clear, buildMusicXml, parseNote, leftHandClefChanges, buildSlices };
+  /**
+   * For checking against SA (Stage 3): the accidental drawn on each note of each hand, in playing order -
+   * null (none), 0 (natural), 1 (sharp), -1 (flat), 2 (double sharp), -2 (double flat), as SA's NoteStaffPlacement.accidental
+   */
+  function drawnAccidentals() {
+    const codes = { '#': 1, 'b': -1, 'n': 0, '##': 2, 'bb': -2 };
+    const result = {};
+    for (const hand of ['right', 'left']) {
+      result[hand] = noteTargets[hand].map((note) => {
+        const staveNote = note.vfnote && note.vfnote[0];
+        const modifiers = staveNote && staveNote.getModifiers ? staveNote.getModifiers() : [];
+        const accidental = modifiers.find((m) => m.getCategory && ['accidentals', 'Accidental'].includes(m.getCategory()));
+        return accidental ? (codes[accidental.type] ?? accidental.type) : null;
+      });
+    }
+    return result;
+  }
+
+  window.SAFScore = { init, load, highlight, clear, buildMusicXml, parseNote, leftHandClefChanges, buildSlices, drawnAccidentals };
 })();

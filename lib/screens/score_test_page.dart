@@ -5,14 +5,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../music/abrsm_grade5.dart';
+import '../music/scale.dart';
 import '../platform/platform_services.dart';
 import '../platform/score/score_view.dart';
 import '../platform/sound/sound_player.dart';
 import '../playback/scale_player.dart';
+import '../score/scale_score.dart';
 import '../score/score_spec.dart';
 import 'common.dart';
 
-/// Stage 2 test screen: a test scale drawn by OSMD as SA lays it out, played at its tempo with SA's green ring
+/// Score test screen (Stages 2-3): SA's ABRSM Grade 5 exercises from SAF's port of SA's scale model, drawn by OSMD as
+/// SA lays them out, with SA's choice of hands for hands-together exercises, played at their tempo with SA's green ring
 /// following the notes. Shows how long drawing took and how quickly the page answers each highlight.
 class ScoreTestPage extends StatefulWidget {
   const ScoreTestPage({super.key});
@@ -29,7 +33,15 @@ class _ScoreTestPageState extends State<ScoreTestPage> {
     ..onFinished = _onFinished;
   StreamSubscription<ScoreMessage>? _subscription;
 
-  List<ScoreSpec> _scales = [];
+  /// SA's Grade 5 list, and the exercise chosen from it
+  final List<Scale> _exercises = abrsmGrade5();
+  Scale? _exercise;
+
+  /// The hands shown and played: the exercise's own, or one hand of a hands-together exercise (SA Select Hands)
+  List<int> _hands = const [0, 1];
+
+  /// The exercise with the chosen hands, and its score
+  Scale? _shown;
   ScoreSpec? _scale;
   int _tempo = 120;
   bool _metronome = true;
@@ -99,20 +111,31 @@ class _ScoreTestPageState extends State<ScoreTestPage> {
     super.dispose();
   }
 
-  Future<void> _loadScales() async {
-    try {
-      final scales = await ScoreSpec.loadTestScales();
-      if (!mounted) return;
-      setState(() => _scales = scales);
-      _chooseScale(scales.first);
-    } catch (e) {
-      if (mounted) setState(() => _scoreStatus = 'Could not read the test scales: $e');
-    }
+  void _loadScales() {
+    _chooseExercise(_exercises.first);
   }
 
-  void _chooseScale(ScoreSpec scale) {
+  void _chooseExercise(Scale exercise) {
+    _exercise = exercise;
+    _chooseHands(exercise.hands);
+  }
+
+  /// [hands]: [0, 1] together, [0] right, [1] left
+  void _chooseHands(List<int> hands) {
+    final exercise = _exercise!;
+    final shown = _sameHands(hands, exercise.hands) ? exercise : exercise.withHands(hands);
+    final ScoreSpec scale;
+    try {
+      scale = scoreSpecForScale(shown);
+    } catch (e) {
+      setState(() => _scoreStatus = 'Could not make the score: $e');
+      _addToReport('Error ${shown.title}: $e');
+      return;
+    }
     _stop();
     setState(() {
+      _hands = hands;
+      _shown = shown;
       _scale = scale;
       _tempo = scale.tempo;
       _ringIndex = null;
@@ -123,6 +146,8 @@ class _ScoreTestPageState extends State<ScoreTestPage> {
       ..start();
     _score.load(scale);
   }
+
+  static bool _sameHands(List<int> a, List<int> b) => a.length == b.length && a.every(b.contains);
 
   void _onScoreMessage(ScoreMessage message) {
     if (!mounted) return;
@@ -170,14 +195,17 @@ class _ScoreTestPageState extends State<ScoreTestPage> {
       }
       if (!mounted) return;
     }
-    final stave = scale.stave(Hand.right) ?? scale.staves.first;
+    final shown = _shown!;
+    // The right hand's notes when it is shown, otherwise the left hand's
+    final playHand = shown.hands.contains(0) ? 0 : 1;
+    final notes = [for (final n in shown.notesOf(playHand)) n.midi];
     _score.clear();
     _seq = 0;
     _sent.clear();
     _replies = 0;
     _totalReplyMs = 0;
     _worstReplyMs = 0;
-    _player.play(ScalePlan(notes: stave.midis, tempo: _tempo, metronome: _metronome));
+    _player.play(ScalePlan(notes: notes, tempo: _tempo, metronome: _metronome));
     setState(() {
       _playing = true;
       _ringIndex = null;
@@ -249,6 +277,7 @@ class _ScoreTestPageState extends State<ScoreTestPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scale = _scale;
+    final exercise = _exercise;
     final staves = scale?.staves.length ?? 1;
     // About SA's share of a landscape phone screen per stave, larger on tablets
     final staveHeight = math.min(110.0, math.max(60.0, MediaQuery.sizeOf(context).height * 0.17));
@@ -261,18 +290,36 @@ class _ScoreTestPageState extends State<ScoreTestPage> {
             Row(
               children: [
                 Expanded(
-                  child: DropdownButton<ScoreSpec>(
+                  child: DropdownButton<Scale>(
                     isExpanded: true,
-                    value: scale,
-                    hint: const Text('Loading test scales…'),
+                    value: exercise,
                     items: [
-                      for (final s in _scales) DropdownMenuItem(value: s, child: Text(s.name)),
+                      for (final s in _exercises)
+                        DropdownMenuItem(value: s, child: Text(s.title, overflow: TextOverflow.ellipsis)),
                     ],
                     onChanged: (s) {
-                      if (s != null) _chooseScale(s);
+                      if (s != null) _chooseExercise(s);
                     },
                   ),
                 ),
+                if (exercise != null && exercise.isHandsTogether) ...[
+                  const SizedBox(width: 12),
+                  // SA Select Hands: Hands Together, Practise Left Hand, Practise Right Hand
+                  SegmentedButton<String>(
+                    showSelectedIcon: false,
+                    segments: const [
+                      ButtonSegment(value: 'both', label: Text('Together')),
+                      ButtonSegment(value: 'left', label: Text('LH')),
+                      ButtonSegment(value: 'right', label: Text('RH')),
+                    ],
+                    selected: {_hands.length > 1 ? 'both' : (_hands.first == 1 ? 'left' : 'right')},
+                    onSelectionChanged: (s) => _chooseHands(switch (s.first) {
+                      'left' => const [1],
+                      'right' => const [0],
+                      _ => const [0, 1],
+                    }),
+                  ),
+                ],
                 const SizedBox(width: 12),
                 Text('♩ = $_tempo'),
                 const SizedBox(width: 12),
@@ -310,8 +357,8 @@ class _ScoreTestPageState extends State<ScoreTestPage> {
             ],
             const SizedBox(height: 8),
             Text(
-              'Count-in of 4 beats, as SA. Hands together: the right hand is played; both rings follow. '
-              'Compare with SA: docs/sa_reference/.',
+              '${_shown?.title ?? ''}. SA ABRSM Grade 5 (${_exercises.length} exercises). Count-in of 4 beats, as SA. '
+              'Hands together: the right hand is played; both rings follow.',
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 12),

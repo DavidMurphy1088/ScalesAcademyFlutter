@@ -18,7 +18,7 @@ class HomePage extends StatelessWidget {
         children: [
           _entry(context, Icons.mic, 'Listen', 'Microphone pitch detection and SA scoring (Stage 0)', const ListenPage()),
           _entry(context, Icons.music_note, 'Sound', 'Piano notes, scales and metronome (Stage 1)', const SoundTestPage()),
-          _entry(context, Icons.library_music, 'Score', 'Scales drawn as SA draws them, with the playing note ringed (Stage 2)',
+          _entry(context, Icons.library_music, 'Score', 'SA\'s ABRSM Grade 5 scales, drawn as SA draws them, with the playing note ringed (Stages 2-3)',
               const ScoreTestPage()),
         ],
       ),
