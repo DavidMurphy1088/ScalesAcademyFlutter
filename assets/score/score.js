@@ -4,7 +4,8 @@
 //
 // Dart -> JS:  SAFScore.load(specJson), SAFScore.highlight(hand, index, on, seq), SAFScore.clear()
 // JS -> Dart:  messages (JSON strings) through the function given to SAFScore.init:
-//   {type:'ready'} {type:'rendered', ms, notes:{right:n, left:n}} {type:'error', message}
+//   {type:'ready'} {type:'rendered', ms, notes:{right:n, left:n}, redraw} {type:'error', message}
+//   (redraw: true when the score was drawn again because its space changed size, not because Dart asked)
 //   {type:'highlighted', seq}   (reply to a highlight that carried a seq number, to time the round trip)
 //
 // Spec (JSON):
@@ -249,13 +250,20 @@
     if (size === lastSize) return;
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
+      // A score waiting for a size is a first drawing; otherwise it is the last score drawn again
+      const redraw = !pendingSpec;
       const spec = pendingSpec || lastSpec;
       pendingSpec = null;
-      if (spec) load(spec);
+      if (spec) draw(spec, redraw);
     }, 100);
   }
 
-  async function load(specJson) {
+  /** Draws the score Dart asks for */
+  function load(specJson) {
+    return draw(specJson, false);
+  }
+
+  async function draw(specJson, redraw) {
     const t0 = performance.now();
     try {
       const spec = typeof specJson === 'string' ? JSON.parse(specJson) : specJson;
@@ -288,7 +296,7 @@
       layOutOnOneLine(bars);
       fitToWidth();
       collectNotes();
-      post({ type: 'rendered', ms: Math.round(performance.now() - t0),
+      post({ type: 'rendered', ms: Math.round(performance.now() - t0), redraw,
         notes: { right: noteTargets.right.length, left: noteTargets.left.length } });
     } catch (e) {
       post({ type: 'error', message: String(e && e.message ? e.message : e) });

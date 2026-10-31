@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../log/test_log.dart';
 import 'common.dart';
 import 'listen_page.dart';
 import 'score_test_page.dart';
@@ -11,6 +12,7 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    TestLog.instance.setScreenSize(MediaQuery.sizeOf(context));
     return Scaffold(
       appBar: saAppBar(context, 'SA Flutter'),
       body: ListView(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../exercise/scale_scorer.dart';
+import '../log/test_log.dart';
 import '../music/midi.dart';
 import '../platform/platform_services.dart';
 import '../platform/sound/sound_player.dart';
@@ -42,6 +43,18 @@ class _SoundTestPageState extends State<SoundTestPage> {
   String? _timing;
 
   int get _startMidi => _octaves == 3 ? 48 : 60;
+
+  /// The test-wide settings that start each test log line from this screen
+  List<String> get _logSettings => [
+        'Sound',
+        _sound.piano.label,
+        'C major RH $_octaves ${_octaves == 1 ? 'octave' : 'octaves'}',
+        '♩=$_tempo',
+        'metronome ${_metronome ? 'on' : 'off'}',
+        'count-in ${_countIn ? 'on' : 'off'}',
+      ];
+
+  void _log(String message) => TestLog.instance.add(_logSettings, message);
   List<int> get _scaleNotes => buildMajorScale(startMidi: _startMidi, octaves: _octaves);
 
   @override
@@ -59,8 +72,10 @@ class _SoundTestPageState extends State<SoundTestPage> {
       final took = await _sound.init();
       if (!mounted) return;
       setState(() => _status = 'Ready: ${_sound.piano.label} loaded in ${took.inMilliseconds} ms');
+      _log('Start sound: $_status');
     } catch (e) {
       if (mounted) setState(() => _status = 'Sound could not start: $e');
+      _log('Sound could not start: $e');
     } finally {
       if (mounted) setState(() => _starting = false);
     }
@@ -75,8 +90,10 @@ class _SoundTestPageState extends State<SoundTestPage> {
     try {
       final took = await _sound.selectPiano(id);
       if (mounted) setState(() => _status = 'Ready: ${_sound.piano.label} loaded in ${took.inMilliseconds} ms');
+      _log('Piano chosen: $_status');
     } catch (e) {
       if (mounted) setState(() => _status = 'Could not load: $e');
+      _log('Piano could not load: $e');
     } finally {
       if (mounted) setState(() => _starting = false);
     }
@@ -117,11 +134,13 @@ class _SoundTestPageState extends State<SoundTestPage> {
 
   void _stopPlaying() {
     if (_playing == _Playing.nothing) return;
+    final what = _playing == _Playing.metronome ? 'Metronome only' : 'Play scale (stopped early)';
     _player.stop();
     setState(() {
       _playing = _Playing.nothing;
       _timing = _timingText();
     });
+    _log('$what: ${_timing!.isEmpty ? 'no timing yet' : _timing}');
   }
 
   void _onScaleNote(int index, int midi) {
@@ -138,6 +157,7 @@ class _SoundTestPageState extends State<SoundTestPage> {
       _playing = _Playing.nothing;
       _timing = _timingText();
     });
+    _log('Play scale: ${_timing!.isEmpty ? 'no timing yet' : _timing}');
   }
 
   /// How punctual the timing engine was on this device

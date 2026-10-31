@@ -22,7 +22,11 @@ class ScoreMessage {
   /// 'highlighted': the sequence number of the highlight being acknowledged
   final int? seq;
 
-  const ScoreMessage({required this.type, this.ms, this.rightNotes = 0, this.leftNotes = 0, this.message, this.seq});
+  /// 'rendered': drawn again because the score's space changed size (not because Dart asked for it)
+  final bool redraw;
+
+  const ScoreMessage(
+      {required this.type, this.ms, this.rightNotes = 0, this.leftNotes = 0, this.message, this.seq, this.redraw = false});
 
   factory ScoreMessage.fromJson(Map<String, dynamic> json) {
     final notes = json['notes'] as Map<String, dynamic>?;
@@ -33,6 +37,7 @@ class ScoreMessage {
       leftNotes: (notes?['left'] as num?)?.toInt() ?? 0,
       message: json['message'] as String?,
       seq: (json['seq'] as num?)?.toInt(),
+      redraw: json['redraw'] == true,
     );
   }
 }

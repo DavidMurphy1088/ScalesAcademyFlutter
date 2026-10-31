@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
+import '../log/test_log.dart';
 import '../music/abrsm_grade5.dart';
 import '../music/scale.dart';
 import '../platform/platform_services.dart';
@@ -53,9 +52,6 @@ class _ScoreTestPageState extends State<ScoreTestPage> {
   String? _playStatus;
   final _loadTimer = Stopwatch();
 
-  /// Every result on this screen, one line each, to copy and paste into a message (Copy report)
-  final List<String> _report = [];
-
   // Highlight round trips: Dart sends the highlight, the page answers once the ring is shown
   int _seq = 0;
   final Map<int, Stopwatch> _sent = {};
@@ -63,38 +59,16 @@ class _ScoreTestPageState extends State<ScoreTestPage> {
   double _totalReplyMs = 0;
   double _worstReplyMs = 0;
 
-  /// e.g. "Android release", "iOS debug", "Web (Chrome) debug"
-  static String get _platformName {
-    final mode = kReleaseMode ? 'release' : (kProfileMode ? 'profile' : 'debug');
-    if (kIsWeb) return 'Web $mode';
-    final os = switch (defaultTargetPlatform) {
-      TargetPlatform.android => 'Android',
-      TargetPlatform.iOS => 'iOS',
-      TargetPlatform.macOS => 'macOS',
-      _ => defaultTargetPlatform.name,
-    };
-    return '$os $mode';
-  }
+  /// The test-wide settings that start each test log line from this screen
+  List<String> get _logSettings => [
+        'Score',
+        _shown?.title ?? '',
+        '♩=$_tempo',
+        'metronome ${_metronome ? 'on' : 'off'}',
+        _sound.piano.label,
+      ];
 
-  void _addToReport(String line) {
-    if (_report.isEmpty) {
-      final now = DateTime.now();
-      final time = '${now.year}-${_two(now.month)}-${_two(now.day)} ${_two(now.hour)}:${_two(now.minute)}';
-      _report.add('[$_platformName] SAF Score test, $time');
-    }
-    _report.add('[$_platformName] $line');
-  }
-
-  static String _two(int n) => n.toString().padLeft(2, '0');
-
-  Future<void> _copyReport() async {
-    final text = _report.join('\n');
-    await Clipboard.setData(ClipboardData(text: text));
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Copied ${_report.length} lines - paste them into your message')),
-    );
-  }
+  void _addToReport(String line) => TestLog.instance.add(_logSettings, line);
 
   @override
   void initState() {
@@ -129,7 +103,7 @@ class _ScoreTestPageState extends State<ScoreTestPage> {
       scale = scoreSpecForScale(shown);
     } catch (e) {
       setState(() => _scoreStatus = 'Could not make the score: $e');
-      _addToReport('Error ${shown.title}: $e');
+      _addToReport('Error making the score: $e');
       return;
     }
     _stop();
@@ -144,7 +118,11 @@ class _ScoreTestPageState extends State<ScoreTestPage> {
     _loadTimer
       ..reset()
       ..start();
-    _score.load(scale);
+    // After the next frame: the score's box takes its new height first (one or two staves), so the score is drawn
+    // once at the right size - not at the old size and then again
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && identical(_scale, scale)) _score.load(scale);
+    });
   }
 
   static bool _sameHands(List<int> a, List<int> b) => a.length == b.length && a.every(b.contains);
@@ -155,17 +133,21 @@ class _ScoreTestPageState extends State<ScoreTestPage> {
       case 'ready':
         setState(() => _scoreStatus = 'Drawing…');
       case 'rendered':
-        _loadTimer.stop();
         final counts = [
           if (message.rightNotes > 0) 'RH ${message.rightNotes}',
           if (message.leftNotes > 0) 'LH ${message.leftNotes}',
         ].join(', ');
-        setState(() => _scoreStatus = 'Drawn in ${message.ms} ms (OSMD); '
-            '${_loadTimer.elapsedMilliseconds} ms from choosing it. Notes: $counts');
-        _addToReport('Draw ${_scale?.name}: $_scoreStatus');
+        if (message.redraw) {
+          _addToReport('Redraw (score area changed size): ${message.ms} ms (OSMD). Notes: $counts');
+        } else {
+          _loadTimer.stop();
+          setState(() => _scoreStatus = 'Drawn in ${message.ms} ms (OSMD); '
+              '${_loadTimer.elapsedMilliseconds} ms from choosing it. Notes: $counts');
+          _addToReport('Draw: $_scoreStatus');
+        }
       case 'error':
         setState(() => _scoreStatus = 'Score error: ${message.message}');
-        _addToReport('Error ${_scale?.name}: ${message.message}');
+        _addToReport('Score error: ${message.message}');
       case 'highlighted':
         final timer = _sent.remove(message.seq);
         if (timer != null) {
@@ -226,8 +208,7 @@ class _ScoreTestPageState extends State<ScoreTestPage> {
 
   void _addPlayToReport({required bool stopped}) {
     final timing = _playStatus ?? '';
-    _addToReport('Play ${_scale?.name}, ♩=$_tempo, metronome ${_metronome ? 'on' : 'off'}'
-        '${stopped ? ' (stopped early)' : ''}: ${timing.isEmpty ? 'no timing yet' : timing}');
+    _addToReport('Play${stopped ? ' (stopped early)' : ''}: ${timing.isEmpty ? 'no timing yet' : timing}');
   }
 
   /// As SA: the ring shows while the note sounds (legato: until the next note starts)
@@ -348,46 +329,6 @@ class _ScoreTestPageState extends State<ScoreTestPage> {
               height: staveHeight * staves,
               decoration: BoxDecoration(border: Border.all(color: theme.dividerColor)),
               child: ScoreView(controller: _score),
-            ),
-            const SizedBox(height: 8),
-            SelectableText(_scoreStatus, style: theme.textTheme.bodySmall),
-            if (_playStatus != null && _playStatus!.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              SelectableText(_playStatus!, style: theme.textTheme.bodySmall),
-            ],
-            const SizedBox(height: 8),
-            Text(
-              '${_shown?.title ?? ''}. SA ABRSM Grade 5 (${_exercises.length} exercises). Count-in of 4 beats, as SA. '
-              'Hands together: the right hand is played; both rings follow.',
-              style: theme.textTheme.bodySmall,
-            ),
-            const SizedBox(height: 12),
-            // Every result so far, to send back: Copy report puts it all on the clipboard (or select the text)
-            Row(
-              children: [
-                Text('Report (${_report.length} lines)', style: theme.textTheme.titleSmall),
-                const SizedBox(width: 12),
-                OutlinedButton.icon(
-                  onPressed: _report.isEmpty ? null : _copyReport,
-                  icon: const Icon(Icons.copy),
-                  label: const Text('Copy report'),
-                ),
-                const SizedBox(width: 8),
-                TextButton(
-                  onPressed: _report.isEmpty ? null : () => setState(_report.clear),
-                  child: const Text('Clear'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(border: Border.all(color: theme.dividerColor)),
-              child: SelectableText(
-                _report.isEmpty ? 'Results appear here as you draw and play scales.' : _report.join('\n'),
-                style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
-              ),
             ),
           ],
         ),

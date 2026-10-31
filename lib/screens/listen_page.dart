@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../music/midi.dart';
 import '../exercise/note_detector.dart';
+import '../log/test_log.dart';
 import '../platform/pitch/pitch_reading.dart';
 import '../platform/pitch/pitch_source.dart';
 import '../platform/platform_services.dart';
@@ -42,6 +43,17 @@ class _ListenPageState extends State<ListenPage> {
   /// 1 or 2 octaves start on middle C (C4); 3 octaves start an octave lower, on C3
   int get _startMidi => _octaves == 3 ? 48 : 60;
   ScaleScorer _makeScorer() => ScaleScorer(buildMajorScale(startMidi: _startMidi, octaves: _octaves));
+
+  /// The test-wide settings that start each test log line from this screen
+  List<String> get _logSettings => [
+        'Listen',
+        'C major RH $_octaves ${_octaves == 1 ? 'octave' : 'octaves'}',
+        _detectorOption.label,
+        'filter ${_detector.amplitudeFilter.toStringAsFixed(3)}',
+        'readings in a row ${_detector.requiredCount}',
+      ];
+
+  void _log(String message) => TestLog.instance.add(_logSettings, message);
 
   void _chooseOctaves(int octaves) {
     setState(() {
@@ -134,6 +146,7 @@ class _ListenPageState extends State<ListenPage> {
       _listening = result.started;
       _status = result.detail;
     });
+    _log('Start listening: ${result.started ? 'started' : 'did not start'} - ${result.detail}');
     if (!result.started) {
       await _subscription?.cancel();
       _subscription = null;
@@ -188,6 +201,12 @@ class _ListenPageState extends State<ListenPage> {
   Future<void> _endScale() async {
     if (_listening) await _stop();
     if (mounted) setState(() => _scaleEnded = true);
+    // The whole End Scale report (as Copy full report), each line prefixed with this screen's settings
+    if (_scoredLines.isNotEmpty) {
+      _log('End Scale report:\n$_fullReportText');
+    } else {
+      _log('End Scale: no notes heard');
+    }
   }
 
   /// One line of the End Scale summary

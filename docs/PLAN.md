@@ -98,6 +98,10 @@ Read this first in every session. Update the **Status** and **Test log** section
     (chromatic LH: D after Db, SA draws no natural); SAF/OSMD draws the natural (correct notation) - David, 30 Oct 2026: keep SAF's natural.
 - **Stage 4 - Keyboard and inputs**: Dart keyboard; microphone, MIDI and on-screen touch feeding one note stream.
 - **Stage 5 - Follow and Lead**: port SA `ExerciseHandler`; compare with SA on iPhone at the piano; Samsung; MIDI; touch.
+- **Stage 5b - Hands together with MIDI** (agreed with David 31 Oct 2026): Follow and Lead for hands-together exercises when
+  listening to a MIDI keyboard - at each step expect both hands' notes within a short window; results per hand. (SA has
+  one-hand Follow/Lead only.) Microphone: follow by note name only (it can't tell the hands apart: in similar motion the
+  RH note is the LH note's 2nd harmonic); maybe later an experiment checking the two expected pitches for contrary motion.
 - **Stage 6 - Recording, playback, Play Along** (high risk, lower priority). Apply SA `Notes/AudioSession_iPadPlaybackScratch.md`.
 - **Stage 7 - Placeholder navigation**: Grade 5 user, Practice Chart / Choose Exercise, Spin Wheel, scale screen.
 - **Stage 8 - Web check** (Chrome, Safari, Android Chrome).
@@ -203,3 +207,15 @@ Read this first in every session. Update the **Status** and **Test log** section
   first time; a deliberately broken fingering was caught (4 exercises). Accidentals drawn by OSMD vs SA: 97/98 match.
   All 98 scores draw in Chromium, avg 17 ms.
 - 30 Oct 2026, David: `flutter test` - 22 tests passed (3 s). Score screen run on the web (debug): Grade 5 list, Together/LH/RH, A major hands together drawn in 52 ms.
+
+- 31 Oct 2026: David upgraded Flutter to 3.47.9 stable (c197ca5199; Dart 3.13.7 unchanged; no package changes).
+  `flutter test` 22 passed; Claude: `dart analyze` no issues and check_scales 98/98 on the same Flutter.
+- 31 Oct 2026, Stage 3 device runs (David, test log): Samsung (debug) and Chrome (debug). Scores look good compared with SA;
+  chromatic very small but just readable; nothing odd on opening the Score screen; `flutter test` passed.
+  Samsung: draws 43-118 ms after the first (283 ms first, 1626 ms from opening the screen); play ticks avg 1.5-1.7 ms late,
+  worst 4.3 ms; ring round trip avg 14-17 ms, worst 32 ms. Chrome: draws 8-48 ms; ticks avg 0.6-0.8 ms, worst 2.0 ms;
+  round trip avg 0.3-0.4 ms. Found and fixed: screen size 0x0 in the log header on Android; a score drawn twice when
+  the number of staves changed (now drawn once; a redraw on resize is logged as "Redraw"). iPhone run still to do.
+- 31 Oct 2026: app-wide test log (lib/log/test_log.dart): title-bar buttons Log to console (2 blank lines, START/END),
+  Copy log (for email), Clear; each line prefixed with the test's settings; uncaught errors logged as [ERROR] with the
+  start of the stack trace. Score screen: nothing below the staff.
