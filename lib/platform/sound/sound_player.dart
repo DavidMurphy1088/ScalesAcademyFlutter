@@ -38,8 +38,9 @@ abstract class SoundPlayer {
   /// Start a note (key down)
   void noteOn(int midi);
 
-  /// Release a note (key up): it fades out like a released piano key
-  void noteOff(int midi);
+  /// Release a note (key up): it fades out like a released piano key, over [release] if given
+  /// (the screen keys use 0.5 s, so a short tap still rings)
+  void noteOff(int midi, {Duration? release});
 
   void allNotesOff();
 
@@ -69,7 +70,7 @@ class SilentSoundPlayer implements SoundPlayer {
   @override
   void noteOn(int midi) {}
   @override
-  void noteOff(int midi) {}
+  void noteOff(int midi, {Duration? release}) {}
   @override
   void allNotesOff() {}
   @override

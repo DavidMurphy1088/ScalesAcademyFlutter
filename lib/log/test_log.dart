@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -68,7 +69,24 @@ class TestLog extends ChangeNotifier {
     for (final line in message.trimRight().split('\n')) {
       _lines.add('$prefix $line');
     }
-    notifyListeners();
+    _notify();
+  }
+
+  bool _notifyScheduled = false;
+
+  /// Tells the title bar's log count to update. A line can be added while the screens are being built (e.g. from a
+  /// screen's initState); the title bar can't be marked for rebuilding then, so it is told after that frame.
+  void _notify() {
+    if (SchedulerBinding.instance.schedulerPhase != SchedulerPhase.persistentCallbacks) {
+      notifyListeners();
+      return;
+    }
+    if (_notifyScheduled) return;
+    _notifyScheduled = true;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _notifyScheduled = false;
+      notifyListeners();
+    });
   }
 
   String get text => _lines.join('\n');
@@ -100,6 +118,6 @@ class TestLog extends ChangeNotifier {
 
   void clear() {
     _lines.clear();
-    notifyListeners();
+    _notify();
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../log/test_log.dart';
 import 'common.dart';
+import 'keyboard_test_page.dart';
 import 'listen_page.dart';
 import 'score_test_page.dart';
 import 'sound_test_page.dart';
@@ -22,6 +23,9 @@ class HomePage extends StatelessWidget {
           _entry(context, Icons.music_note, 'Sound', 'Piano notes, scales and metronome (Stage 1)', const SoundTestPage()),
           _entry(context, Icons.library_music, 'Score', 'SA\'s ABRSM Grade 5 scales, drawn as SA draws them, with the playing note ringed (Stages 2-3)',
               const ScoreTestPage()),
+          _entry(context, Icons.piano, 'Keyboard',
+              'SA\'s keyboard with fingering; play with the microphone, a MIDI keyboard or the screen keys (Stage 4)',
+              const KeyboardTestPage()),
         ],
       ),
     );

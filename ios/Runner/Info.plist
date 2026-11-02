@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>SA Flutter connects to your Bluetooth MIDI keyboard to hear the notes you play.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>SA Flutter listens to your piano to detect the notes you play.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>

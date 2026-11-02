@@ -40,6 +40,10 @@ dependencies:
   webview_flutter: ^4.13.0
   # Score on the web: OSMD drawn straight into the page (package:web for the <div> and <script> elements)
   web: ^1.1.1
+  # MIDI keyboards (Stage 4): Bluetooth MIDI on Android and iOS, Web MIDI in Chrome and Edge. Pinned
+  flutter_midi_command: 1.4.0
+  # Bluetooth MIDI scanning and connecting on Android (iOS uses Apple's own pairing screen instead)
+  flutter_midi_command_ble: 1.4.0
 
 dev_dependencies:
   flutter_test:
@@ -68,6 +72,9 @@ flutter:
   # App icon shown at the top left of the screen (copied from Scales Academy's app_icon 1.png)
   assets:
     - assets/images/app_icon.png
+    # SA's hand icons for the keyboard (hand_left_solid, hand_right_solid)
+    - assets/images/hand_left_solid.png
+    - assets/images/hand_right_solid.png
     # Piano notes rendered from Scales Academy's SoundFonts (tools/render_piano.py), one file per MIDI note 21-108
     - assets/sounds/piano_steinway/
     - assets/sounds/piano_yamaha/

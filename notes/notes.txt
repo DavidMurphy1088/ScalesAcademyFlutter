@@ -1,0 +1,84 @@
+
+
+30Sep2026
+---------
+The presence of the kb in Apple Settings only means the device can do bluetooth audio, not MIDI
+
+Setup on MAC
+
+- No MIDI device at all.
+  Audio MIDI Setup -> Show Audio Devices -> Make sure phone (iPad) is disabled
+  MIDI Studio -> Configure Network Driver -> session not Enabled
+  MIDI Studio -> Configure Bluetooth -> not advertising (Stop Advertising)
+
+- A connected (cabled, USB) MIDI device. Detected at app start and when running.
+  Audio MIDI Setup -> Show Audio Devices -> Make sure phone (iPad) is enabled
+  VMPK Edit -> MIDI Connections -> output driver CoreMIDI, output set to iPhone
+  Listen with = Microphone -> "MIDI Piano Detected" alert at start.
+  Listen with = MIDI piano -> used automatically, no alert.
+
+- A Bluetooth MIDI device. Detected at app start and when running.
+  Kill Audio MIDI Setup and run BlueTooth (BMK) app on iPad. Download is called midimttr. Tell it to advertise its MIDI service
+  Note that even when midimttr is closed the connection lingers. Go to iPad Setting and restart BlueTooth
+
+
+,==== TODO
+enable all scales for lead and follow
+follow must hilight two notes to start
+test follow with contrary motion - one keyboard
+offer competition ladder
+
+iOS doesn't natively advertise as a Bluetooth MIDI device without a supporting app. You can use apps such as:
+MIDI Wrench
+
+=== Test Bluetooth
+On iPhone - run MIDI Wrench, Settings, MIDI Devices, Bluetooth MIDI, search for devices
+On Mac - run Audio MIDI setup, run Window->Show MIDI Studio, click Bluetooth icon in top bar, press Advertise
+- than MIDI Wrewnch should show the MAC so press Not Connected to Connect
+- then get Bluetooth Piaring Request on both MIDI wrench and MAC (along with a verification number)
+- click Connect
+
+=== ChatGPT
+I have a Swift iOS app running on iPhone that listens for MIDI notifcations from connected MIDI digitial pianos. The pianos are connected either via Bluetooth or USB cable. Bluetooth connections will occur after the app has started running and the app must handle those connections.
+
+How do I handle these use cases -
+
+1. The MIDI devices (pianos) are up and running before the app starts. The app must connect to whichever pianos are connected.
+
+2. The MIDI devices are not running when the app starts. A MIDI device is then connected. The app must notice that a new MIDI device is available and connect to it
+
+3. What additional steps are required to ensure the app can make Bluetooth connections when required. How should the app handle Bluetooth pairing. These Bluetooth connections may occur aftrer the app is running.
+
+What is the summary of the steps in the code to handle both uses cases. Dont list code for the moment, just the sequence of steps the code must execute. Please ensure the steps are carefully yhought out and handle all the use cases above and sequence of connections that might occur given those use cases.
+
+
+3 Set Up Device Change Listeners:
+
+Monitor USB Device Changes
+
+---
+I have a Swift iOS app running on iPhone and iPad that listens for MIDI notifcations from connected MIDI digitial pianos. It uses MIDIClientCreate and MIDIInputPortCreate. The pianos are connected either via Bluetooth or USB cable. The app is only a listener of MIDI Note On notifications and never sends MIDI notifications out to other MIDI endpoints.
+
+Bluetooth connections will occur after the app has started running and the app must handle those connections.
+
+What settings in the iPhone running the app have to setup to allow the MIDI paino to connect via bluetooth
+
+---
+I have a iPhone and iPad not connected by cables. The app to be tested runs on the iPad. How can the iPhone request a Bluetooth connection to the iPad.
+
+The iPhone will run a virtual MIDI piano that needs to send Note On MIDI notifications to the app to be tested on the ipad. The iPad uses the code you wrote above for the MIDIManager. How will the virtual piano on the iPhone try to connect via Bluetooth to the app running on iPad? Does the MIDIManager code you provided need to be changed or does the app under test on the iPAD need to add additional code to handle this bluetooth connection?
+
+=== Bluetooth
+Direct Bluetooth pairing between these devices (iPad and iPhone) isn't a standard or supported feature.
+
+--
+I have a Swift iOS app running on iPhone and iPad that listens for MIDI notifcations from connected MIDI digitial pianos. It uses MIDIClientCreate and MIDIInputPortCreate. The pianos are connected either via Bluetooth or USB cable. The app is only a listener of MIDI Note On notifications and never sends MIDI notifications out to other MIDI endpoints.
+
+Bluetooth connections will occur after the app has started running and the app must handle those connections.
+
+What settings in the iPhone running the app have to setup to allow the MIDI paino to connect via Bluetooth. When those settings are made will my App be able to receive MIDI notifications from the piano
+
+-->First you handle system-level (OS) setup:
+Make sure Bluetooth is enabled in iOS Settings.
+Put the piano in pairing mode.
+Then if you want your app to manage (or assist with) pairing inside the app, you’d use CABTMIDICentralViewController.

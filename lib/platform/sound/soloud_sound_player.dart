@@ -109,9 +109,9 @@ class SoloudSoundPlayer implements SoundPlayer {
   }
 
   @override
-  void noteOff(int midi) {
+  void noteOff(int midi, {Duration? release}) {
     final handle = _sounding.remove(midi);
-    if (handle != null) _fadeOut(handle);
+    if (handle != null) _fadeOut(handle, release ?? SoloudSoundPlayer.release);
   }
 
   @override
@@ -122,11 +122,11 @@ class SoloudSoundPlayer implements SoundPlayer {
     _sounding.clear();
   }
 
-  void _fadeOut(SoundHandle handle) {
+  void _fadeOut(SoundHandle handle, [Duration fade = release]) {
     try {
       if (!_soloud.getIsValidVoiceHandle(handle)) return; // the note had already finished
-      _soloud.fadeVolume(handle, 0, release);
-      _soloud.scheduleStop(handle, release);
+      _soloud.fadeVolume(handle, 0, fade);
+      _soloud.scheduleStop(handle, fade);
     } catch (e) {
       debugPrint('SoloudSoundPlayer: fade out failed: $e');
     }

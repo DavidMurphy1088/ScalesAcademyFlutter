@@ -1,3 +1,4 @@
+import 'midi/flutter_midi_input.dart';
 import 'midi/midi_input.dart';
 import 'pitch/pitch_source.dart';
 import 'recording/audio_recorder.dart';
@@ -10,7 +11,7 @@ import 'sound/sound_player.dart';
 ///  - [pitch]: microphone pitch readings (Android: Kotlin YIN; iOS: AudioKit as in Scales Academy,
 ///    or YIN; web: JavaScript YIN)
 ///  - [sound]: piano notes and metronome (flutter_soloud on all three platforms; iOS audio session in Swift)
-///  - [midi]: MIDI keyboard input (placeholder until Stage 4)
+///  - [midi]: MIDI keyboards (Stage 4): Bluetooth MIDI on Android and iOS, Web MIDI in Chrome and Edge
 ///  - [recorder]: recording and playback (placeholder until Stage 6)
 class PlatformServices {
   final PitchSource? pitch;
@@ -24,7 +25,7 @@ class PlatformServices {
   static final PlatformServices instance = PlatformServices._(
     pitch: PitchSource.forThisPlatform(),
     sound: SoloudSoundPlayer(),
-    midi: NoMidiInput(),
+    midi: midiPlatformSupported ? FlutterMidiInput() : NoMidiInput(),
     recorder: NoAudioRecorder(),
   );
 }

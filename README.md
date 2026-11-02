@@ -6,7 +6,8 @@ Scales Academy for iOS, Android and the web, in Flutter. Dart project name: `sca
 - `lib/platform/` - the only platform-specific code, behind interfaces (`platform_services.dart`):
   - `pitch/` - microphone pitch readings (Android: Kotlin YIN; iOS: AudioKit as in Scales Academy, or YIN; web: JavaScript YIN)
   - `sound/` - piano notes and metronome (flutter_soloud; iOS audio session via Swift)
-  - `midi/` - MIDI keyboard input (Stage 4)
+  - `midi/` - MIDI keyboards (flutter_midi_command): Bluetooth on Android (scan) and iOS (Apple's pairing screen,
+    `ios/Runner/AppDelegate.swift`), Web MIDI in Chrome/Edge
   - `recording/` - recording and playback (Stage 6)
   - `score/` - the score view: OSMD in a web view on Android/iOS (`webview_flutter`), straight into the page on the web
 - `lib/score/` - the score description (key, staves, notes with their spelling) sent to the score page;
@@ -14,9 +15,11 @@ Scales Academy for iOS, Android and the web, in Flutter. Dart project name: `sca
 - `lib/music/` - notes and names; `scale.dart` - port of SA's scale model (all scale types: notes, values, fingering,
   finger-break colours, segments); `scale_spelling.dart` - key signature and note spelling; `abrsm_grade5.dart` - SA's
   ABRSM Grade 5 list
+- `lib/keyboard/` - SA's keyboard: model (range, fingering per direction, joined contrary motion) and drawing (ClassicStyle)
+- `lib/input/` - played notes from the microphone, a MIDI keyboard and the screen keys, in one stream
 - `lib/exercise/` - Scales Academy's note rules and scoring
 - `lib/playback/` - tempo clock and scale player (shared timing engine)
-- `lib/screens/` - screens (home menu, Listen, Sound, Score)
+- `lib/screens/` - screens (home menu, Listen, Sound, Score, Keyboard)
 - `assets/score/` - the score page shared by all platforms: `score.js` (MusicXML with SA's layout rules, drawing,
   SA's green ring), `score.html` (web view page), OpenSheetMusicDisplay 2.2.1 (`osmd.min.js`, BSD-3)
 - `assets/sounds/` - piano notes rendered from SA's SoundFonts (`tools/render_piano.py`) and SA's metronome clicks

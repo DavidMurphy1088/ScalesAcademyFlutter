@@ -97,7 +97,35 @@ Read this first in every session. Update the **Status** and **Test log** section
   - Known SA difference kept: after a mid-bar clef change SA doesn't repeat an accidental cancelled earlier in the bar
     (chromatic LH: D after Db, SA draws no natural); SAF/OSMD draws the natural (correct notation) - David, 30 Oct 2026: keep SAF's natural.
 - **Stage 4 - Keyboard and inputs**: Dart keyboard; microphone, MIDI and on-screen touch feeding one note stream.
+  Agreed with David (31 Oct / 1 Nov 2026): the screen keys are **playable** (they sound and count as played notes), with a
+  setting to turn that off; **Bluetooth MIDI only** is tested (USB is listed but untested; no adapters); "Listen with" is
+  chosen each time for now (not saved); plain white and black keys. VMPK on the Mac stands in for a keyboard (over
+  Bluetooth to the iPhone, as David tests SA; Web MIDI in Chrome on the Mac).
+  - `lib/keyboard/keyboard_model.dart`: port of SA `PianoKeyboardModel` / `PianoKeyModel` - SA's key range per exercise
+    (C or F below the scale; extra keys for E, G, A, Ab, Eb, B, Bb starts and broken chords), keys linked to the scale
+    note of the current segment (fingering changes with direction), contrary-motion hands together joined on one keyboard
+    (SA `joinKeyboard`, quirks kept), sounding rings (0.8 s), highlights.
+  - `lib/keyboard/exercise_keyboards.dart`: SA `configureKeyboards` / `setSelectedScaleSegment` / `SoundEventHandler`
+    key lighting (one keyboard; RH above LH for similar motion; joined for contrary).
+  - `lib/keyboard/piano_keyboard.dart`: SA `ClassicStyle` drawing - finger numbers purple (#786A85), orange (#FAA248) where
+    the thumb goes under / a finger crosses for the current direction; ring on a sounding key (red outside the scale);
+    SA's hand icon (SA green) in the outermost white key; multi-touch playing (SA `updateKeysForUpDown`, latch off).
+  - `lib/input/note_input.dart`: one stream of `PlayedNote` (MIDI note, on/off, velocity or loudness, source, time) from
+    the microphone (SA's note rules, a note each time it changes), a MIDI keyboard and the screen keys.
+  - `lib/platform/midi/`: `flutter_midi_command` 1.4.0 (pinned). iOS: CoreMIDI; Bluetooth keyboards paired on Apple's
+    Bluetooth MIDI screen (`CABTMIDICentralViewController`, as SA; `ios/Runner/AppDelegate.swift`). Android: Bluetooth
+    keyboards found by scanning (`flutter_midi_command_ble` 1.4.0, which adds the Bluetooth permissions). Web: Web MIDI.
+    SA's Check (waits 10 s for a key press; logs what arrived if none).
+  - Keyboard test screen (home > Keyboard); `test/keyboard_test.dart`: all 98 exercises have a linked key for every note in
+    every part of the scale.
 - **Stage 5 - Follow and Lead**: port SA `ExerciseHandler`; compare with SA on iPhone at the piano; Samsung; MIDI; touch.
+  To handle in Stage 5 (from Stage 4 tests, 2 Nov 2026):
+  - A repeated note on the microphone isn't heard again: SA's rule reports a note only when it differs from the last one
+    reported (NoteDetector `changed`), so E4 then E4 gives one note until another note (often noise) comes between
+    (David, iPhone). Detect a fresh strike of the same key from a sharp rise in loudness.
+  - Web microphone (YIN, loudness filter 0): octave slips (E2/E3 for E4, C#6 for C#5, B5 = E4's 3rd harmonic) and, with
+    nothing played, low notes from room noise every few seconds (F#1, F2, G2, B0). Needs a filter above 0 and/or a floor
+    for low notes on the web.
 - **Stage 5b - Hands together with MIDI** (agreed with David 31 Oct 2026): Follow and Lead for hands-together exercises when
   listening to a MIDI keyboard - at each step expect both hands' notes within a short window; results per hand. (SA has
   one-hand Follow/Lead only.) Microphone: follow by note name only (it can't tell the hands apart: in similar motion the
@@ -148,6 +176,8 @@ Read this first in every session. Update the **Status** and **Test log** section
   minimum volume, Allow Harmonics, debug mode, email feedback; piano calibration screen; subscriptions/licence; help texts.
 
 ## Status
+- Stage 4: built 2 Nov 2026; run by David on Samsung, Chrome and iPhone (debug). `dart analyze` clean; keyboard check 98/98.
+  Still to try: Android Bluetooth MIDI with a keyboard (the scan ran, none nearby); the Check button.
 - Stage 0: DONE 28 Oct 2026 - runs as "SA Flutter" on Samsung, iPhone and Chrome; committed.
 - Stage 3: DONE 30 Oct 2026, committed (web run by David; Samsung and iPhone run still due). Checked against SA's export (98 exercises: 38 + RH/LH of 30 hands-together):
   `tools/check_scales.dart` all 98 match (4604 notes: MIDI, value, finger, finger breaks, segments; 3000 spellings; key
@@ -219,3 +249,13 @@ Read this first in every session. Update the **Status** and **Test log** section
 - 31 Oct 2026: app-wide test log (lib/log/test_log.dart): title-bar buttons Log to console (2 blank lines, START/END),
   Copy log (for email), Clear; each line prefixed with the test's settings; uncaught errors logged as [ERROR] with the
   start of the stack trace. Score screen: nothing below the staff.
+- 2 Nov 2026, Stage 4 (Claude): keyboards built for all 98 exercises / hand choices, every scale note on the keyboard and
+  linked (finger shown) in every segment. Joined contrary-motion keyboards: Db major and C# harmonic minor 51 keys from C2,
+  chromatic (F#/A#) 57 keys from F2.
+- 2 Nov 2026, Stage 4 device runs (David, debug): Keyboard screen on Samsung, Chrome and iPhone. Screen keys play (chords,
+  slides); Play rings the keys (ticks avg 0.6-2.0 ms late; iPhone debug worst 71 ms on a first run, 2.7 ms later).
+  Web MIDI: VMPK -> IAC Driver -> Chrome, notes received. iPhone Bluetooth MIDI: Mac advertising from MIDI Studio, paired on
+  Apple's screen in SAF, listed as "iOS (Bluetooth)", VMPK notes received. Android: Bluetooth scan ran, found none.
+  Fixed after the runs: test log line added during a build (error on opening the screen); screen-key notes now fade over
+  0.5 s so a short tap rings (David); black keys' top level with the white keys (David); top rows overflowed on the iPhone
+  (734 wide) - their controls now shrink to fit. Microphone points moved to Stage 5 (repeated note; noise; octave slips).

@@ -25,6 +25,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.13.1"
+  bluez:
+    dependency: transitive
+    description:
+      name: bluez
+      sha256: "61a7204381925896a374301498f2f5399e59827c6498ae1e924aaa598751b545"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.8.3"
   boolean_selector:
     dependency: transitive
     description:
@@ -97,6 +105,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.9"
+  dbus:
+    dependency: transitive
+    description:
+      name: dbus
+      sha256: a48d5da28e89bd02196e80d81ed8d7954923d00a0f4a68cc20b575038f023383
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.15"
   fake_async:
     dependency: transitive
     description:
@@ -113,6 +129,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  ffi_leak_tracker:
+    dependency: transitive
+    description:
+      name: ffi_leak_tracker
+      sha256: "4093d4ef9ca06ffe2786e73bfb25e22aa92112b9bb4ec941f11e3e6b61489a97"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.2"
   file:
     dependency: transitive
     description:
@@ -142,6 +166,70 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.0"
+  flutter_midi_command:
+    dependency: "direct main"
+    description:
+      name: flutter_midi_command
+      sha256: "8e614fe2eafc1288f4e99e9eb34e36dfee1f363de919cf1b6434db44f0c44d5e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
+  flutter_midi_command_android:
+    dependency: transitive
+    description:
+      name: flutter_midi_command_android
+      sha256: "1e3e09f8fad8b78d342fcebc203af6662a7e26d274ced266d7e2c8c05a2a0cff"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
+  flutter_midi_command_ble:
+    dependency: "direct main"
+    description:
+      name: flutter_midi_command_ble
+      sha256: "0a24f9dabfdbcaa580f2832c8bbc0628a6fae32bfa151f178a74b43b5b6d2563"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
+  flutter_midi_command_darwin:
+    dependency: transitive
+    description:
+      name: flutter_midi_command_darwin
+      sha256: "3b7ca5ac66e99c6a7f81a09710d84ea9f4a9b596970d4e74a64e6d99b60b0b84"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
+  flutter_midi_command_linux:
+    dependency: transitive
+    description:
+      name: flutter_midi_command_linux
+      sha256: "54e974fa4f694b3452294a9cfadb8a8ad570b58433e4efc32b32801ba4ec962a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
+  flutter_midi_command_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_midi_command_platform_interface
+      sha256: b461b95c4b30056cbe1188bf5991664e92ce6e878ff6631e4047824c9da1b1b0
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
+  flutter_midi_command_web:
+    dependency: transitive
+    description:
+      name: flutter_midi_command_web
+      sha256: "4a08f522fb627902b9b906486436c6b6e5ebc0e65029912fa9d05dfbec0c7d7e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
+  flutter_midi_command_windows:
+    dependency: transitive
+    description:
+      name: flutter_midi_command_windows
+      sha256: ccf2e75a4094c1ed8e3a759308aee9c75375171f99b2cb4b3279486a681d0164
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
   flutter_soloud:
     dependency: "direct main"
     description:
@@ -152,6 +240,19 @@ packages:
     version: "5.2.1"
   flutter_test:
     dependency: "direct dev"
+    description: flutter
+    source: sdk
+    version: "0.0.0"
+  flutter_web_bluetooth:
+    dependency: transitive
+    description:
+      name: flutter_web_bluetooth
+      sha256: "71fa37f699032b4416d56aeb5214363ba057f6aed4eba544cc26293e2582b85d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
+  flutter_web_plugins:
+    dependency: transitive
     description: flutter
     source: sdk
     version: "0.0.0"
@@ -371,6 +472,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+  petitparser:
+    dependency: transitive
+    description:
+      name: petitparser
+      sha256: "2f1564aadb14215e478563b5406cb80729d022158c01dc50c96013c2f7eb4790"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.1.0"
   platform:
     dependency: transitive
     description:
@@ -480,6 +589,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  universal_ble:
+    dependency: transitive
+    description:
+      name: universal_ble
+      sha256: bdebe7d4ff3a24f28b5e56c999104ea1584a9de55da4ee0b4c2346bcf8f8c528
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.0"
   vector_math:
     dependency: transitive
     description:
@@ -536,6 +653,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.27.2"
+  win32:
+    dependency: transitive
+    description:
+      name: win32
+      sha256: a0b93865d5644f11cf6a8c3f6db909f1ec168958b5805f6cc684adea957cd63d
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.4.0"
   xdg_directories:
     dependency: transitive
     description:
@@ -544,6 +669,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  xml:
+    dependency: transitive
+    description:
+      name: xml
+      sha256: "0fe8cc98946def31cbcbc8734aa4067031e6f65ea3a78a508060bfed2200bfeb"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.1.0"
   yaml:
     dependency: transitive
     description:
